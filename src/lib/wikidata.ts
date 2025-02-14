@@ -106,7 +106,7 @@ export async function searchCompany({
 
   const response = (await fetch(searchEntitiesQuery).then((res) =>
     res.json()
-  )) as SearchResponse
+  )) satisfies SearchResponse
 
   if (response.error) {
     throw new Error('Wikidata search failed: ' + response.error)

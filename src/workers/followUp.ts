@@ -37,19 +37,19 @@ const followUp = new DiscordWorker<FollowUpJob>(
           role: 'system',
           content:
             'You are an expert in CSRD and will provide accurate data from a PDF with company CSRD reporting. Be consise and accurate.',
-        } as ChatCompletionSystemMessageParam,
+        } satisfies ChatCompletionSystemMessageParam,
         {
           role: 'user',
           content: 'Results from PDF: \n' + markdown,
-        } as ChatCompletionUserMessageParam,
+        } satisfies ChatCompletionUserMessageParam,
         {
           role: 'user',
           content: prompt,
-        } as ChatCompletionUserMessageParam,
+        } satisfies ChatCompletionUserMessageParam,
         Array.isArray(job.stacktrace)
           ? [
-              { role: 'assistant' , content: previousAnswer } as ChatCompletionAssistantMessageParam,
-              { role: 'user', content: job.stacktrace.join('') } as ChatCompletionUserMessageParam,
+              { role: 'assistant' , content: previousAnswer } satisfies ChatCompletionAssistantMessageParam,
+              { role: 'user', content: job.stacktrace.join('') } satisfies ChatCompletionUserMessageParam,
             ]
           : undefined,
       ]

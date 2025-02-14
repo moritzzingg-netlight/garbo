@@ -10,13 +10,14 @@ const openai = new OpenAI({
 })
 
 const ask = async (messages: ChatCompletionMessageParam[], options?: RequestOptions & {response_format?: ResponseFormatJSONSchema}) => {
+  const { stream: _, ...safeOpenAIOptions } = options ? options : {stream: true};
   const response = await openai.chat.completions.create({
     messages: messages.filter((m) => m.content),
     model: 'gpt-4o',
     temperature: 0.1,
     stream: false,
-    ...options,
-  } as ChatCompletionCreateParamsNonStreaming)
+    ...safeOpenAIOptions,
+  } satisfies ChatCompletionCreateParamsNonStreaming)
 
   return response.choices[0].message.content ?? ''
 }

@@ -33,7 +33,7 @@ function transformMetadata(data: any): any {
         acc[key] = value
       }
       return acc
-    }, {} as Record<string, any>)
+    }, {} satisfies Record<string, any>)
 
     return transformed
   }

@@ -77,7 +77,7 @@ const apiConfig = {
     : {
         level: 'info',
         ...baseLoggerOptions,
-      }) as FastifyServerOptions['logger'],
+      }) satisfies FastifyServerOptions['logger'],
 }
 
 export default apiConfig
