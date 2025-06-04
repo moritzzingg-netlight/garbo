@@ -9,6 +9,7 @@ import * as schemas from '../src/api/schemas'
 // DEFINE THE ENVIRONMENTS YOU WANT TO COMPARE HERE
 const STAGING_API_URL ="https://stage-api.klimatkollen.se/api";
 const PRODUCTION_API_URL = "https://api.klimatkollen.se/api";
+const ONLY_COMPARE_REPORTS_FROM = "2024";
 
 type CompanyList = z.infer<typeof schemas.CompanyList>;
 type ReportingPeriod  = z.infer<typeof schemas.MinimalReportingPeriodSchema>;
@@ -59,6 +60,7 @@ interface ComparisonDiff {
   numberIncorrect?: number;
   numberBelow90Acc?: number;
   numberBelow95Acc?:number;
+  numberBelow100Acc?:number;
 };
 
 // Parse the API tokens assuming they are in the environment variables
@@ -94,6 +96,8 @@ function compareCompanyLists(productionCompanies: CompanyList, stagingCompanies:
   for(const productionCompany of productionCompanies) {
     const stagingCompany = stagingCompanies.find((companyI) => companyI.wikidataId === productionCompany.wikidataId);
     for(const reportingPeriod of productionCompany.reportingPeriods) {
+      if(ONLY_COMPARE_REPORTS_FROM && !reportingPeriod.endDate.toString().startsWith("2024")) {continue;}
+
       const stagingReportingPeriod = stagingCompany?.reportingPeriods.find((periodI) => periodI.startDate === reportingPeriod.startDate && periodI.endDate === reportingPeriod.endDate) ?? undefined;
       if(stagingReportingPeriod) {
         const diff = compareReportingPeriods(reportingPeriod, stagingReportingPeriod, productionCompany);
@@ -204,8 +208,12 @@ function compareReportingPeriods(productionReportingPeriod: ReportingPeriod, sta
   const below95 = diffs.reduce((acc: number, current: Diff) => {
     return current.perctDifference ? current.perctDifference < 0.95 ? acc + 1 : acc : acc;
   }, 0);
+  const below100 = diffs.reduce((acc: number, current: Diff) => {
+    return current.perctDifference ? current.perctDifference < 1 ? acc + 1 : acc : acc;
+  }, 0);
   d.numberBelow90Acc = diffs.length > 0 ? below90 / diffs.length: undefined;
   d.numberBelow95Acc = diffs.length > 0 ? below95 / diffs.length: undefined;
+  d.numberBelow100Acc = diffs.length > 0 ? below100 / diffs.length: undefined;
   d.numberIncorrect = numberIncorrect;
   d.numberOfFields = numbersCount;
   if(numbersCount > 0) {
@@ -312,6 +320,7 @@ export function convertDiffsToCSV(data: Company[]): string {
   const errorHeader = [
     'Below_90',
     'Below_95',
+    'Below_100',
   ]
 
   const valueSubheaders = [
@@ -361,6 +370,7 @@ export function convertDiffsToCSV(data: Company[]): string {
   
       row.push(item.numberBelow90Acc?.toString() ?? '');
       row.push(item.numberBelow95Acc?.toString() ?? '');
+      row.push(item.numberBelow100Acc?.toString() ?? '');
   
       csvContent += row.join(',') + '\n';
     });
